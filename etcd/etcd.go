@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,6 +42,34 @@ var (
 	errNoHost    = errors.New("getting metric types requires an etcd host")
 	errBadHost   = errors.New("failed to parse given etcd_host")
 	errReqFailed = errors.New("request to etcd api failed")
+
+	// the derivatives are a sum / count avg
+	derivatives = map[string][2]string{
+		"etcd_server_proposal_durations_avg": [2]string{
+			"etcd_server_proposal_durations_seconds_sum",
+			"etcd_server_proposal_durations_seconds_count",
+		},
+		"etcd_snapshot_save_marshalling_durations_seconds_avg": [2]string{
+			"etcd_snapshot_save_marshalling_durations_seconds_sum",
+			"etcd_snapshot_save_marshalling_durations_seconds_count",
+		},
+		"etcd_storage_db_compaction_pause_duration_milliseconds_avg": [2]string{
+			"etcd_storage_db_compaction_pause_duration_milliseconds_sum",
+			"etcd_storage_db_compaction_pause_duration_milliseconds_count",
+		},
+		"etcd_storage_db_compaction_total_duration_milliseconds_avg": [2]string{
+			"etcd_storage_db_compaction_total_duration_milliseconds_sum",
+			"etcd_storage_db_compaction_total_duration_milliseconds_count",
+		},
+		"etcd_storage_index_compaction_pause_duration_milliseconds_avg": [2]string{
+			"etcd_storage_index_compaction_pause_duration_milliseconds_sum",
+			"etcd_storage_index_compaction_pause_duration_milliseconds_count",
+		},
+		"etcd_wal_fsync_durations_seconds_avg": [2]string{
+			"etcd_wal_fsync_durations_seconds_sum",
+			"etcd_wal_fsync_durations_seconds_count",
+		},
+	}
 )
 
 type Etcd struct{}
@@ -109,7 +138,7 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 		return nil, errReqFailed
 	}
 
-	var mts []plugin.PluginMetricType
+	mtsmap := make(map[string]plugin.PluginMetricType)
 	scanner := bufio.NewScanner(resp.Body)
 
 	hn, err := os.Hostname()
@@ -121,25 +150,55 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 		txt := scanner.Text()
 		if !strings.Contains(txt, "{") && !strings.Contains(txt, "#") {
 			nsslice := strings.Split(txt, " ")
-			if len(filter) != 0 {
-				for _, f := range filter {
-					if strings.Contains(nsslice[0], f) {
-						mts = append(mts, plugin.PluginMetricType{
-							Namespace_: []string{"intel", "etcd", nsslice[0]},
-							Data_:      nsslice[1],
-							Source_:    hn,
-							Timestamp_: time.Now(),
-						})
-					}
-				}
-			} else {
-				mts = append(mts, plugin.PluginMetricType{
-					Namespace_: []string{"intel", "etcd", nsslice[0]},
-					Data_:      nsslice[1],
-					Source_:    hn,
-					Timestamp_: time.Now(),
-				})
+			mtsmap[nsslice[0]] = plugin.PluginMetricType{
+				Namespace_: []string{"intel", "etcd", nsslice[0]},
+				Data_:      nsslice[1],
+				Source_:    hn,
+				Timestamp_: time.Now(),
 			}
+		}
+	}
+
+	// No filter given; this was a GetMetricTypes call.
+	if len(filter) == 0 {
+		mts := make([]plugin.PluginMetricType, 0, len(mtsmap)+len(derivatives))
+		for _, v := range mtsmap {
+			mts = append(mts, v)
+		}
+		for k := range derivatives {
+			mts = append(mts, plugin.PluginMetricType{Namespace_: []string{"intel", "etcd", "derivative", k}})
+		}
+		return mts, nil
+	}
+
+	// Walk through filter and pluck out metrics.
+	// if we find the requested metric in derivatives,
+	// then derive the value from `from`.
+	mts := make([]plugin.PluginMetricType, 0, len(filter))
+	for _, f := range filter {
+		from, ok := derivatives[f]
+		if ok {
+			mt := plugin.PluginMetricType{
+				Namespace_: []string{"intel", "etcd", "derivative", f},
+				Source_:    hn,
+				Timestamp_: time.Now(),
+			}
+			sum, err := strconv.ParseFloat(mtsmap[from[0]].Data_.(string), 64)
+			if err != nil {
+				return nil, err
+			}
+			count, err := strconv.ParseFloat(mtsmap[from[1]].Data_.(string), 64)
+			if err != nil {
+				return nil, err
+			}
+			mt.Data_ = sum / count
+			mts = append(mts, mt)
+			continue
+		}
+
+		mt, ok := mtsmap[f]
+		if ok {
+			mts = append(mts, mt)
 		}
 	}
 	return mts, nil

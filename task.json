@@ -7,6 +7,7 @@
     "workflow": {
         "collect": {
             "metrics": {
+                "/intel/etcd/derivative/etcd_wal_fsync_durations_seconds_avg": {},
                 "/intel/etcd/etcd_wal_fsync_durations_seconds_count": {},
                 "/intel/etcd/etcd_wal_fsync_durations_seconds_sum": {}
             },
