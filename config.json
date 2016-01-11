@@ -1,0 +1,11 @@
+{
+    "plugins": {
+        "collector": {
+            "etcd": {
+                "all": {
+                    "etcd_host": "http://wcp13:4001"
+                }
+            }
+        }
+    }
+}

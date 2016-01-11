@@ -1,0 +1,17 @@
+{
+    "version": 1,
+    "schedule": {
+        "type": "simple",
+        "interval": "1s"
+    },
+    "workflow": {
+        "collect": {
+            "metrics": {
+                "/intel/etcd/etcd_wal_fsync_durations_seconds_count": {},
+                "/intel/etcd/etcd_wal_fsync_durations_seconds_sum": {}
+            },
+            "config": {
+            }
+        }
+    }
+}
