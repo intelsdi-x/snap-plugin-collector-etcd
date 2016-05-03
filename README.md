@@ -30,7 +30,7 @@ All OSs currently supported by snap:
 Clone repo into `$GOPATH/src/github.com/intelsdi-x/`:
 
 ```
-$ git clone https://github.com/intelsdi-x/snap-collector-etcd.git
+$ git clone https://github.com/intelsdi-x/snap-plugin-collector-etcd.git
 ```
 
 Build the plugin by running make within the cloned repo:
