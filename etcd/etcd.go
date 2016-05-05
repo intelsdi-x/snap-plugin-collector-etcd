@@ -19,13 +19,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core"
 	"github.com/intelsdi-x/snap/core/ctypes"
 )
 
@@ -74,7 +74,7 @@ var (
 
 type Etcd struct{}
 
-func (e *Etcd) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
+func (e *Etcd) CollectMetrics(mts []plugin.MetricType) ([]plugin.MetricType, error) {
 	config := mts[0].Config().Table()
 	hostcfg, ok := config["etcd_host"]
 	if !ok {
@@ -87,14 +87,14 @@ func (e *Etcd) CollectMetrics(mts []plugin.PluginMetricType) ([]plugin.PluginMet
 
 	filter := make([]string, len(mts))
 	for i, m := range mts {
-		filter[i] = m.Namespace_[len(m.Namespace_)-1]
+		filter[i] = m.Namespace().Strings()[len(m.Namespace().Strings())-1]
 	}
 
 	return gathermts(host.Value, filter)
 }
 
 //GetMetricTypes returns metric types for testing
-func (e *Etcd) GetMetricTypes(cfg plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
+func (e *Etcd) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
 	hostcfg, ok := cfg.Table()["etcd_host"]
 	if !ok {
 		return nil, errNoHost
@@ -129,7 +129,7 @@ func Meta() *plugin.PluginMeta {
 	)
 }
 
-func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) {
+func gathermts(host string, filter []string) ([]plugin.MetricType, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/metrics", host))
 	if err != nil {
 		return nil, err
@@ -138,10 +138,9 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 		return nil, errReqFailed
 	}
 
-	mtsmap := make(map[string]plugin.PluginMetricType)
+	mtsmap := make(map[string]plugin.MetricType)
 	scanner := bufio.NewScanner(resp.Body)
 
-	hn, err := os.Hostname()
 	if err != nil {
 		return nil, err
 	}
@@ -150,10 +149,9 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 		txt := scanner.Text()
 		if !strings.Contains(txt, "{") && !strings.Contains(txt, "#") {
 			nsslice := strings.Split(txt, " ")
-			mtsmap[nsslice[0]] = plugin.PluginMetricType{
-				Namespace_: []string{"intel", "etcd", nsslice[0]},
+			mtsmap[nsslice[0]] = plugin.MetricType{
+				Namespace_: core.NewNamespace("intel", "etcd", nsslice[0]),
 				Data_:      nsslice[1],
-				Source_:    hn,
 				Timestamp_: time.Now(),
 			}
 		}
@@ -161,12 +159,12 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 
 	// No filter given; this was a GetMetricTypes call.
 	if len(filter) == 0 {
-		mts := make([]plugin.PluginMetricType, 0, len(mtsmap)+len(derivatives))
+		mts := make([]plugin.MetricType, 0, len(mtsmap)+len(derivatives))
 		for _, v := range mtsmap {
 			mts = append(mts, v)
 		}
 		for k := range derivatives {
-			mts = append(mts, plugin.PluginMetricType{Namespace_: []string{"intel", "etcd", "derivative", k}})
+			mts = append(mts, plugin.MetricType{Namespace_: core.NewNamespace("intel", "etcd", "derivative", k)})
 		}
 		return mts, nil
 	}
@@ -174,13 +172,12 @@ func gathermts(host string, filter []string) ([]plugin.PluginMetricType, error) 
 	// Walk through filter and pluck out metrics.
 	// if we find the requested metric in derivatives,
 	// then derive the value from `from`.
-	mts := make([]plugin.PluginMetricType, 0, len(filter))
+	mts := make([]plugin.MetricType, 0, len(filter))
 	for _, f := range filter {
 		from, ok := derivatives[f]
 		if ok {
-			mt := plugin.PluginMetricType{
-				Namespace_: []string{"intel", "etcd", "derivative", f},
-				Source_:    hn,
+			mt := plugin.MetricType{
+				Namespace_: core.NewNamespace("intel", "etcd", "derivative", f),
 				Timestamp_: time.Now(),
 			}
 			sum, err := strconv.ParseFloat(mtsmap[from[0]].Data_.(string), 64)

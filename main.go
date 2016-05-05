@@ -17,7 +17,7 @@ package main
 import (
 	"os"
 
-	"github.com/intelsdi-x/snap-collector-etcd/etcd"
+	"github.com/intelsdi-x/snap-plugin-collector-etcd/etcd"
 	"github.com/intelsdi-x/snap/control/plugin"
 )
 
