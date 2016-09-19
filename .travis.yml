@@ -1,0 +1,68 @@
+# File managed by pluginsync
+sudo: false
+language: go
+go:
+- 1.6.3
+- 1.7.1
+env:
+  global:
+  - ORG_PATH=/home/travis/gopath/src/github.com/intelsdi-x
+  - SNAP_PLUGIN_SOURCE=/home/travis/gopath/src/github.com/${TRAVIS_REPO_SLUG}
+  matrix:
+  - TEST_TYPE=build
+matrix:
+  exclude:
+  - go: 1.6.3
+    env: TEST_TYPE=build
+before_install:
+- "[[ -d $SNAP_PLUGIN_SOURCE ]] || mkdir -p $ORG_PATH && ln -s $TRAVIS_BUILD_DIR $SNAP_PLUGIN_SOURCE"
+install:
+- cd $SNAP_PLUGIN_SOURCE
+- make deps
+script:
+- make check 2>&1
+notifications:
+  email: false
+  slack:
+    secure: VkbZLIc2RH8yf3PtIAxUNPdAu3rQQ7yQx0GcK124JhbEnZGaHyK615V0rbG7HcVmYKGPdB0cXqZiLBDKGqGKb2zR1NepOe1nF03jxGSpPq8jIFeEXSJGEYGL34ScDzZZGuG6qwbjFcXiW5lqn6t8igzp7v2+URYBaZo5ktCS2xY=
+before_deploy:
+- "./scripts/pre_deploy.sh"
+deploy:
+- provider: s3
+  access_key_id: AKIAINMB43VSSPFZISAA
+  secret_access_key:
+    secure: UluNXQ7K/i/fDm3aKjcxz6nyObkNq4RrD9NPCG8WipYjHbhgRhso4p0y53JXhL1BB5xcLxhH5HVfVUG4oMyMldOMrmNztCHN6pwlQEe/+I4nWUwLdNWtKNlCE/wDDYGzSpBSrTl2Tj/fh5HtcVbQ7IZkjQiuzyt318usEYAhaiDJ2Y31WUurcj7xKBCrNZ1YynGA9BnGgA43R0QdSE5HWpL2cxBF1whDyO+TcRHc1ZluChsp+1RpD6fIivc1/IDLVHViLUs1u4LWTE/oQbf+uSFN7qvNG7BTaG/1sESbSXlFBtUnmlVRaJiDYOCG4vrt4ggMCBOJlh4G+hRaVHl4mMrA8O3lBgtUAQZhUtX8QzA1p10dvNXm8R4GTT22dtRjAXfx0ago77gBmaOyhmYev4/X40swd8ynJQrBcK7GkoBL1avZ3wehYnyglmrWzNZGeKixP4Ie/2IaRhR8QJ3AOj9yJL+akgfrN5zMyCdbP4FW7p+qOaQF4dq3pRSLAdidbQCHWgAD4jslyWdC3o1caqr+Hx8j+0+AqOqVFnqhiwqsfKpUtc1YwYLlLcMci8HxSOUPGyVkpbTSE3/4DBVcUJwiMEY9USvaTvbjWWSfWY+pJwLP1HeSc2JRBa9gl5l1qSViVH91g9/3e9/sFdmzR6Ote8JrA8kxrgo5tgFk+14=
+  bucket: snap.ci.snap-telemetry.io
+  region: us-west-2
+  skip_cleanup: true
+  local-dir: s3
+  upload-dir: plugins
+  acl: public_read
+  on:
+    repo: intelsdi-x/snap-plugin-collector-etcd
+    branch: master
+    condition: $TEST_TYPE = "build" && $TRAVIS_GO_VERSION = "1.7.1"
+- provider: s3
+  access_key_id: AKIAINMB43VSSPFZISAA
+  secret_access_key:
+    secure: UluNXQ7K/i/fDm3aKjcxz6nyObkNq4RrD9NPCG8WipYjHbhgRhso4p0y53JXhL1BB5xcLxhH5HVfVUG4oMyMldOMrmNztCHN6pwlQEe/+I4nWUwLdNWtKNlCE/wDDYGzSpBSrTl2Tj/fh5HtcVbQ7IZkjQiuzyt318usEYAhaiDJ2Y31WUurcj7xKBCrNZ1YynGA9BnGgA43R0QdSE5HWpL2cxBF1whDyO+TcRHc1ZluChsp+1RpD6fIivc1/IDLVHViLUs1u4LWTE/oQbf+uSFN7qvNG7BTaG/1sESbSXlFBtUnmlVRaJiDYOCG4vrt4ggMCBOJlh4G+hRaVHl4mMrA8O3lBgtUAQZhUtX8QzA1p10dvNXm8R4GTT22dtRjAXfx0ago77gBmaOyhmYev4/X40swd8ynJQrBcK7GkoBL1avZ3wehYnyglmrWzNZGeKixP4Ie/2IaRhR8QJ3AOj9yJL+akgfrN5zMyCdbP4FW7p+qOaQF4dq3pRSLAdidbQCHWgAD4jslyWdC3o1caqr+Hx8j+0+AqOqVFnqhiwqsfKpUtc1YwYLlLcMci8HxSOUPGyVkpbTSE3/4DBVcUJwiMEY9USvaTvbjWWSfWY+pJwLP1HeSc2JRBa9gl5l1qSViVH91g9/3e9/sFdmzR6Ote8JrA8kxrgo5tgFk+14=
+  bucket: snap.ci.snap-telemetry.io
+  region: us-west-2
+  skip_cleanup: true
+  local-dir: s3
+  upload-dir: plugins
+  acl: public_read
+  on:
+    repo: intelsdi-x/snap-plugin-collector-etcd
+    tags: true
+    condition: $TEST_TYPE = "build" && $TRAVIS_GO_VERSION = "1.7.1"
+- provider: releases
+  api_key:
+    secure: ZCx5aF3BagpWvSQ75MW9W9ufCFzx/xqrs83roZOqPHuwhbVS0Y1XatL1L5vzwjLfB8Wmck9feUq1y4wRCum/D8S8FPGZJDNAr6dlKxC57cHsGznOx+RmG9MGWJ01iAHOK9bi1OsMq7SWTWNsLmbuUYbZf/8kGq7tHQwbe1fDRSRnXRRmPRFG7yYT7w5I2ayA9f444l/uQ5GHTWBQ5BiiUjMkJnGKwFant6BBSA5cZybNFoszO1P9aWa883KMUXtmE/Vy7UU1lXGfH5MU0+ENRvn+p9QZTri/H+GxfmcaeQgXis0v7ZpSUqvkv4hJjj8AK4E1Ypo8HXbfwPdHEBCT8h0F/cAuoB0NzEotRzUFZhX9WKjx6Oig/4TwQVuDhz2RHnxP9GhSezc7iRvyTpv8bmF14p/WspSGsLmLTq5inC+G4QVy9a8fNKpvrbYM/O/hVEur0ujQGz5TVuAalHW9LRaLUWZKsPU92aynPnABUzYQRMcd3ObMLyKVtU6S53MzoFkKxe4ArT1Lfn4zj9cotzRVChosTwIxAtNrjjT2tkDDIEF4CheaSnabQSXH0diwNW2XzPlr2ka2Hp9HbcbhV8Nyq+DnGccQjqePAg4eqXxytjmI46a1cg1PBii2onSGH0QeVaan73zmuMJMf2jJLz7s0O4jvrZyv9XnHvVlYd4=
+  file:
+    - release/snap-plugin-collector-etcd_linux_x86_64
+  skip_cleanup: true
+  on:
+    repo: intelsdi-x/snap-plugin-collector-etcd
+    tags: true
+    condition: $TEST_TYPE = "build" && $TRAVIS_GO_VERSION = "1.7.1"
