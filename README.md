@@ -1,7 +1,7 @@
-# snap collector plugin - etcd
+# Snap collector plugin - etcd
 This plugin collects metrics from etcd's `/metrics` endpoint.
 
-It's used in the [snap framework](http://github.com/intelsdi-x/snap).
+It's used in the [Snap framework](http://github.com/intelsdi-x/snap).
 
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
@@ -22,27 +22,34 @@ It's used in the [snap framework](http://github.com/intelsdi-x/snap).
 * [golang 1.5+](https://golang.org/dl/)
 
 ### Operating systems
-All OSs currently supported by snap:
+All OSs currently supported by Snap:
 * Linux/amd64
 * Darwin/amd64
 
 ### Installation
+
+#### Download the plugin binary:
+
+You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releasess) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for snap packages).
+
+#### To build the plugin binary:
+
+Fork https://github.com/intelsdi-x/snap-plugin-collector-etcd
 Clone repo into `$GOPATH/src/github.com/intelsdi-x/`:
 
 ```
-$ git clone https://github.com/intelsdi-x/snap-plugin-collector-etcd.git
+$ git clone https://github.com/<yourGithubID>/snap-plugin-collector-etcd.git
 ```
 
-Build the plugin by running make within the cloned repo:
+Build the snap etcd plugin by running make within the cloned repo:
 ```
 $ make
 ```
-This builds the plugin in `/build/rootfs/`
+This builds the plugin in `./build/`
 
 ### Configuration and Usage
 * Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
-* Ensure `$SNAP_PATH` is exported
-`export SNAP_PATH=$GOPATH/src/github.com/intelsdi-x/snap/build`
+* Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/README.md#examples).
 
 ## Documentation
 
@@ -130,48 +137,32 @@ And the raw metrics:
 ```
 
 ### Examples
-This is done from the snap directory.
+Example of running snap etcd collector and writing data to file.
 
-In one terminal window, start the snap daemon (in this case with logging set to 1 and trust disabled):
-```
-$ $SNAP_PATH/bin/snapd -l 1 -t 0
-```
+Ensure [snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
+* initd: `service snap-telemetry start`
+* systemd: `systemctl start snap-telemetry`
+* command line: `snapd -l 1 -t 0 &`
 
-In another terminal window:
-Load etcd plugin
+Download and load snap plugins:
 ```
-$ $SNAP_PATH/bin/snapctl plugin load <path to built etcd plugin>
-```
-See available metrics for your system
-```
-$ $SNAP_PATH/bin/snapctl metric list
-```
-
-Create a task manifest file
-```json
-{
-    "version": 1,
-    "schedule": {
-        "type": "simple",
-        "interval": "1s"
-    },
-    "workflow": {
-        "collect": {
-            "metrics": {
-                "/intel/etcd/derivative/etcd_wal_fsync_durations_seconds_avg": {},
-                "/intel/etcd/etcd_wal_fsync_durations_seconds_count": {},
-                "/intel/etcd/etcd_wal_fsync_durations_seconds_sum": {}
-            },
-            "config": {
-            }
-        }
-    }
-}
+$ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-etcd/latest/linux/x86_64/snap-plugin-collector-etcd
+$ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest/linux/x86_64/snap-plugin-publisher-file
+$ chmod 755 snap-plugin-*
+$ snapctl plugin load snap-plugin-collector-etcd
+$ snapctl plugin load snap-plugin-publisher-file
 ```
 
-Create task:
+See all available metrics:
+
 ```
-$ $SNAP_PATH/bin/snapctl task create -t task.json
+$ snapctl metric list
+```
+
+Download an [example task file](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/examples/tasks/) and load it:
+```
+$ curl -sfLO https://raw.githubusercontent.com/intelsdi-x/snap-plugin-collector-etcd/master/examples/tasks/task-etcd.json
+$ snapctl task create -t task-etcd.json
 Using task manifest to create task
 Task created
 ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
@@ -179,7 +170,7 @@ Name: Task-02dd7ff4-8106-47e9-8b86-70067cd0a850
 State: Running
 ```
 
-Watch the task:
+See realtime output from `snapctl task watch <task_id>` (CTRL+C to exit)
 ```
 snapctl --url http://localhost:8182 task watch 02dd7ff4-8106-47e9-8b86-70067cd0a850
 Watching Task (02dd7ff4-8106-47e9-8b86-70067cd0a850):
@@ -189,9 +180,11 @@ NAMESPACE                                                        DATA           
 /intel/etcd/etcd_wal_fsync_durations_seconds_sum                 10.448252856000042      2016-01-11 16:33:22.728715613 -0800 PST         snap1
 ```
 
+This data is published to a file `/tmp/published_etcd.log` per task specification
+
 Stop task:
 ```
-$ $SNAP_PATH/bin/snapctl task stop 02dd7ff4-8106-47e9-8b86-70067cd0a850
+$ snapctl task stop 02dd7ff4-8106-47e9-8b86-70067cd0a850
 Task stopped:
 ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
 ```
@@ -200,7 +193,7 @@ ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
 There isn't a current roadmap for this plugin, but it is in active development. As we launch this plugin, we do not have any outstanding requirements for the next release. If you have a feature request, please add it as an [issue](https://github.com/intelsdi-x/snap-plugin-collector-etcd/issues/new) and/or submit a [pull request](https://github.com/intelsdi-x/snap-plugin-collector-etcd/pulls).
 
 ## Community Support
-This repository is one of **many** plugins in **snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap.
+This repository is one of **many** plugins in **Snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap.
 
 To reach out to other users, head to the [main framework](https://github.com/intelsdi-x/snap#community-support).
 
@@ -210,7 +203,7 @@ We love contributions!
 There's more than one way to give back, from examples to blogs to code updates. See our recommended process in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
-[snap](http://github.com:intelsdi-x/snap), along with this plugin, is an Open Source software released under the Apache 2.0 [License](LICENSE).
+[Snap](http://github.com:intelsdi-x/snap), along with this plugin, is an Open Source software released under the Apache 2.0 [License](LICENSE).
 
 ## Acknowledgements
 * Author: [@danielscottt](https://github.com/danielscottt/)
