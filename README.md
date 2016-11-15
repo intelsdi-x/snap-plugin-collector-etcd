@@ -30,7 +30,7 @@ All OSs currently supported by Snap:
 
 #### Download the plugin binary:
 
-You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releasess) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for snap packages).
+You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releasess) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for Snap packages).
 
 #### To build the plugin binary:
 
@@ -41,14 +41,14 @@ Clone repo into `$GOPATH/src/github.com/intelsdi-x/`:
 $ git clone https://github.com/<yourGithubID>/snap-plugin-collector-etcd.git
 ```
 
-Build the snap etcd plugin by running make within the cloned repo:
+Build the Snap etcd plugin by running make within the cloned repo:
 ```
 $ make
 ```
 This builds the plugin in `./build/`
 
 ### Configuration and Usage
-* Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
+* Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
 * Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/README.md#examples).
 
 ## Documentation
@@ -137,14 +137,14 @@ And the raw metrics:
 ```
 
 ### Examples
-Example of running snap etcd collector and writing data to file.
+Example of running Snap etcd collector and writing data to file.
 
-Ensure [snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
+Ensure [Snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
 * initd: `service snap-telemetry start`
 * systemd: `systemctl start snap-telemetry`
 * command line: `snapd -l 1 -t 0 &`
 
-Download and load snap plugins:
+Download and load Snap plugins:
 ```
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-etcd/latest/linux/x86_64/snap-plugin-collector-etcd
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest/linux/x86_64/snap-plugin-publisher-file
