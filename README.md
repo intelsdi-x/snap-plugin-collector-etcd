@@ -27,10 +27,9 @@ All OSs currently supported by Snap:
 * Darwin/amd64
 
 ### Installation
-
 #### Download the plugin binary:
 
-You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releasess) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for Snap packages).
+You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releases) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for Snap packages).
 
 #### To build the plugin binary:
 
@@ -49,7 +48,7 @@ This builds the plugin in `./build/`
 
 ### Configuration and Usage
 * Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
-* Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/README.md#examples).
+* Load the plugin and create a task, see example in [Examples](#examples).
 
 ## Documentation
 
@@ -159,7 +158,7 @@ See all available metrics:
 $ snapctl metric list
 ```
 
-Download an [example task file](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/examples/tasks/) and load it:
+Download an [example task file](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/examples/tasks/task-etcd.json) and load it:
 ```
 $ curl -sfLO https://raw.githubusercontent.com/intelsdi-x/snap-plugin-collector-etcd/master/examples/tasks/task-etcd.json
 $ snapctl task create -t task-etcd.json
