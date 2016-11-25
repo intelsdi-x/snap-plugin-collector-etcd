@@ -29,7 +29,7 @@ All OSs currently supported by Snap:
 ### Installation
 #### Download the plugin binary:
 
-You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releases) page. Download the plugin from the latest release and load it into `snapd` (`/opt/snap/plugins` is the default location for Snap packages).
+You can get the pre-built binaries for your OS and architecture from the plugin's [GitHub Releases](https://github.com/intelsdi-x/snap-plugin-collector-etcd/releases) page. Download the plugin from the latest release and load it into `snapteld` (`/opt/snap/plugins` is the default location for Snap packages).
 
 #### To build the plugin binary:
 
@@ -141,27 +141,27 @@ Example of running Snap etcd collector and writing data to file.
 Ensure [Snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
 * initd: `service snap-telemetry start`
 * systemd: `systemctl start snap-telemetry`
-* command line: `snapd -l 1 -t 0 &`
+* command line: `snapteld -l 1 -t 0 &`
 
 Download and load Snap plugins:
 ```
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-etcd/latest/linux/x86_64/snap-plugin-collector-etcd
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest/linux/x86_64/snap-plugin-publisher-file
 $ chmod 755 snap-plugin-*
-$ snapctl plugin load snap-plugin-collector-etcd
-$ snapctl plugin load snap-plugin-publisher-file
+$ snaptel plugin load snap-plugin-collector-etcd
+$ snaptel plugin load snap-plugin-publisher-file
 ```
 
 See all available metrics:
 
 ```
-$ snapctl metric list
+$ snaptel metric list
 ```
 
 Download an [example task file](https://github.com/intelsdi-x/snap-plugin-collector-etcd/blob/master/examples/tasks/task-etcd.json) and load it:
 ```
 $ curl -sfLO https://raw.githubusercontent.com/intelsdi-x/snap-plugin-collector-etcd/master/examples/tasks/task-etcd.json
-$ snapctl task create -t task-etcd.json
+$ snaptel task create -t task-etcd.json
 Using task manifest to create task
 Task created
 ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
@@ -169,9 +169,9 @@ Name: Task-02dd7ff4-8106-47e9-8b86-70067cd0a850
 State: Running
 ```
 
-See realtime output from `snapctl task watch <task_id>` (CTRL+C to exit)
+See realtime output from `snaptel task watch <task_id>` (CTRL+C to exit)
 ```
-snapctl --url http://localhost:8182 task watch 02dd7ff4-8106-47e9-8b86-70067cd0a850
+snaptel --url http://localhost:8182 task watch 02dd7ff4-8106-47e9-8b86-70067cd0a850
 Watching Task (02dd7ff4-8106-47e9-8b86-70067cd0a850):
 NAMESPACE                                                        DATA                    TIMESTAMP                                       SOURCE
 /intel/etcd/derivative/etcd_wal_fsync_durations_seconds_avg      0.0004962833257018023   2016-01-11 16:33:22.728866474 -0800 PST         snap1
@@ -183,7 +183,7 @@ This data is published to a file `/tmp/published_etcd.log` per task specificatio
 
 Stop task:
 ```
-$ snapctl task stop 02dd7ff4-8106-47e9-8b86-70067cd0a850
+$ snaptel task stop 02dd7ff4-8106-47e9-8b86-70067cd0a850
 Task stopped:
 ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
 ```
